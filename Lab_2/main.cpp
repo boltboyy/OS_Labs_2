@@ -14,6 +14,8 @@ typedef void(*ArrPrintFunc)(int*, int);
 DWORD WINAPI MinMax(LPVOID param);
 DWORD WINAPI average(LPVOID param);
 
+CRITICAL_SECTION cs;
+
 int main()
 {
 	int n;
@@ -48,6 +50,9 @@ int main()
 	}
 	print(arr, n);
 	FreeLibrary(hLib);
+
+	InitializeCriticalSection(&cs);
+
 	DWORD idMinMax;
 	HANDLE hMinMax = CreateThread(NULL, 0, MinMax, &data, 0, &idMinMax);
 	if (hMinMax == NULL)
@@ -66,7 +71,10 @@ int main()
 	WaitForSingleObject(haverage, INFINITE);
 	CloseHandle(hMinMax);
 	CloseHandle(haverage);
-	cout << "min= " << data.min << '\t' << "max= " << data.max << '\t' << "average= " << data.average << '\n';
+
+	DeleteCriticalSection(&cs);
+
+	// cout << "min= " << data.min << '\t' << "max= " << data.max << '\t' << "average= " << data.average << '\n';
 	for (int i = 0; i < n; i++)
 	{
 		if (arr[i] == data.min || arr[i] == data.max) arr[i] = (int)data.average;
@@ -104,7 +112,13 @@ DWORD WINAPI MinMax(LPVOID param)
 		if (d->arr[i] > d->max) d->max = d->arr[i];
 		Sleep(7);
 	}
+
+	EnterCriticalSection(&cs);
+
 	cout << "min= " << d->min << '\t' << "max= " <<  d->max << '\n';
+
+	LeaveCriticalSection(&cs);
+
 	return 0;
 }
 
@@ -118,6 +132,12 @@ DWORD WINAPI average(LPVOID param)
 		Sleep(12);
 	}
 	d->average = tmp / d->n;
+
+	EnterCriticalSection(&cs);
+
 	cout << "average= " << d->average << '\n';
+
+	LeaveCriticalSection(&cs);
+
 	return 0;
 }
