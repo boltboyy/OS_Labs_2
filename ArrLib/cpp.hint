@@ -1,0 +1,2 @@
+#define ARRLIB_API __declspec(dllexport)
+#define ARRLIB_API __declspec(dllimport)
